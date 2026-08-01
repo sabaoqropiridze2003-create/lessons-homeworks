@@ -1,0 +1,48 @@
+{
+    "count": 2,
+    "created_at": "2026-07-18 14:16:04.486894",
+    "students": [
+        {
+            "name": "Alice",
+            "age": 20,
+            "grades": [
+                90,
+                85,
+                92
+            ],
+            "address": {
+                "city": "New York",
+                "street": "123 Main St"
+            },
+            "is_active": true,
+            "float": 3.14,
+            "tuple": [
+                1,
+                2,
+                3
+            ],
+            "none": null
+        },
+        {
+            "name": "Bob",
+            "age": 22,
+            "grades": [
+                88,
+                79,
+                95
+            ],
+            "address": {
+                "city": "Los Angeles",
+                "street": "456 Elm St"
+            },
+            "is_active": false,
+            "float": 2.71,
+            "tuple": [
+                4,
+                5,
+                6
+            ],
+            "none": null
+        }
+    ]
+}

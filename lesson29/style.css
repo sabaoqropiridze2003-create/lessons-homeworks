@@ -1,4 +1,23 @@
+body {
+  background-color: gray;
+  font-family: Arial;
+}
+
 p {
   color: blue;
   font-size: 30px;
+}
+
+#form {
+  border: 2px solid black;
+  padding: 20px;
+  margin: 20px;
+  border-radius: 5%;
+}
+
+.text {
+  border: 2px solid red;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
 }

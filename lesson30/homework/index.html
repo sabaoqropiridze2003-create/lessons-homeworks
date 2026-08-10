@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Todos Explorer</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header>
+      <h1>Todos Explorer</h1>
+      <p>Browse todos from JSONPlaceholder with search, filters, pagination, and detail view.</p>
+    </header>
+
+    <main id="app">
+      <section id="loading" class="page centered">
+        <p>Loading todos...</p>
+      </section>
+
+      <section id="todos-page" class="page hidden" aria-live="polite">
+        <div class="controls">
+          <div class="control-group">
+            <label for="search-input">Search by title</label>
+            <input id="search-input" type="search" placeholder="Search todos by title" />
+          </div>
+          <div class="control-group">
+            <label for="user-filter">Filter by user</label>
+            <select id="user-filter">
+              <option value="all">All users</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label for="completed-filter">Filter by completed</label>
+            <select id="completed-filter">
+              <option value="all">All statuses</option>
+              <option value="true">Completed</option>
+              <option value="false">Not completed</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="results-summary" class="summary"></div>
+        <ul id="todos-list" class="todos-list"></ul>
+        <div class="pagination" id="pagination"></div>
+      </section>
+
+      <section id="todo-detail-page" class="page hidden" aria-live="polite">
+        <button id="back-button" class="secondary-button">Back to list</button>
+        <div class="detail-card">
+          <h2 id="detail-title"></h2>
+          <dl>
+            <div class="detail-row">
+              <dt>User ID</dt>
+              <dd id="detail-userId"></dd>
+            </div>
+            <div class="detail-row">
+              <dt>Todo ID</dt>
+              <dd id="detail-id"></dd>
+            </div>
+            <div class="detail-row">
+              <dt>Title</dt>
+              <dd id="detail-body"></dd>
+            </div>
+            <div class="detail-row">
+              <dt>Completed</dt>
+              <dd id="detail-completed"></dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+
+      <section id="error-page" class="page hidden centered">
+        <p>Sorry, we could not load todos right now. Please try again later.</p>
+        <button id="retry-button" class="primary-button">Retry</button>
+      </section>
+    </main>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>

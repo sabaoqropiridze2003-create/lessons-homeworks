@@ -16,7 +16,7 @@ with st.spinner("Loading products..."):
 if products is None:
     st.error("Failed to load products")
 else:
-    st.sidebar.title("ფილტრები")
+    st.sidebar.title("filters")
 
     categories = ["All"] + \
         sorted(list(set(item["category"] for item in products)))

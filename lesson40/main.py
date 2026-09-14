@@ -87,4 +87,32 @@ def get_product(product_id: int, db: Session = Depends(get_db)):
 @app.post("/products", response_model=ProductResponse, status_code=status.HTTP_201_CREATED)
 def create_product(product: ProductCreate, db: Session = Depends(get_db)):
     new_product = Product(**product.model_dump())
-    
+    db.add(new_product)
+    db.commit()
+    db.refresh(new_product)
+    return new_product
+
+@app.put("/products/{product_id}", response_model=ProductResponse)
+def update_product(product_id: int, product: ProductCreate, db: Session = Depends(get_db)):
+    db_product = db.query(Product).filter(Product.id == product_id).first()
+    if not db_product:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    db_product.name = product.name
+    db_product.price = product.price
+    db_product.in_stock = product.in_stock
+
+    db.commit()
+    db.refresh(db_product)
+    return db_product
+
+
+@app.delete("/products/{product_id}")
+def delete_product(product_id: int, db: Session = Depends(get_db)):
+    db_product = db.query(Product).filter(Product.id == product_id).first()
+    if not db_product:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    db.delete(db_product)
+    db.commit()
+    return {"message": "Product deleted successfully"}

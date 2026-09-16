@@ -1,10 +1,11 @@
 from fastapi import Depends, FastAPI, HTTPException, status
 from sqlalchemy.orm import Session
-from database import SessionLocal, engine
+from database import SessionLocal, engine, get_db
 from models import Base, Product
 from schemas import ProductCreate, ProductResponse
 
-Base.metadata.create_all(bind=engine)
+
+
 
 
 app = FastAPI(
@@ -13,12 +14,7 @@ app = FastAPI(
     description="this is a simple api built with fastapi",
 )
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+
 
 
 @app.get("/products", response_model=list[ProductResponse])
@@ -37,13 +33,7 @@ def get_product(product_id: int, db: Session = Depends(get_db)):
 
 @app.post("/products", response_model=ProductResponse, status_code=status.HTTP_201_CREATED)
 def create_product(product: ProductCreate, db: Session = Depends(get_db)):
-    db_product = Product(
-        name=product.name,
-        price=product.price,
-        stock=product.stock,
-        is_available=product.is_available,
-        description=product.description,
-    )
+    db_product = Product(**product.model_dump())
     db.add(db_product)
     db.commit()
     db.refresh(db_product)
@@ -52,7 +42,7 @@ def create_product(product: ProductCreate, db: Session = Depends(get_db)):
 @app.put("/products/{product_id}", response_model=ProductResponse)
 def update_product(product_id: int, product: ProductCreate, db: Session = Depends(get_db)):
     db_product = db.query(Product).filter(Product.id == product_id).first()
-    if db_product is None:
+    if not db_product:
         raise HTTPException(status_code=404, detail="Product not found")
 
     db_product.name = product.name
@@ -60,6 +50,7 @@ def update_product(product_id: int, product: ProductCreate, db: Session = Depend
     db_product.stock = product.stock
     db_product.is_available = product.is_available
     db_product.description = product.description
+    db_product.rating = product.rating  # Update the rating field
 
     db.commit()
     db.refresh(db_product)

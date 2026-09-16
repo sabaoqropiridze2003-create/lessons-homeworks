@@ -5,3 +5,4 @@ def init_database():
     print("creating tables in database")
     Base.metadata.create_all(bind=engine)
     print("tables were created sucsesfuly")
+

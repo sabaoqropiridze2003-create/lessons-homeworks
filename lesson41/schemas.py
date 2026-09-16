@@ -6,6 +6,7 @@ class ProductCreate(BaseModel):
     stock: int = Field(default=0, ge=0)
     is_available: bool = Field(default=True)
     description: str | None = Field(default=None, max_length=500)
+    rating: float | None = Field(default=None, ge=0, le=5) #new field for rating with validation
 class ProductResponse(BaseModel):
     id: int
     name: str
@@ -13,6 +14,7 @@ class ProductResponse(BaseModel):
     stock: int
     is_available: bool
     description: str | None = None
+    rating: float | None = None  # Include the rating field in the response model
 
     class Config:
         from_attributes = True

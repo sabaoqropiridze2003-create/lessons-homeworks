@@ -12,6 +12,7 @@ class Product(Base):
     stock: Mapped[int] = mapped_column(Integer, default=0)
     is_available: Mapped[bool] = mapped_column(Boolean, default=True)
     description: Mapped[str | None] = mapped_column(String(500), default=None)
+    rating: Mapped[float | None] = mapped_column(Float, default=None) #new field for rating
 
     def __str__(self):
         return f"{self.id}.{self.name} - {self.price}"

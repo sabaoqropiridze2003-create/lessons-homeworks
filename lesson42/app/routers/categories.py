@@ -34,3 +34,31 @@ def get_category(category_id: int, db: Session= Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="category not found")
 
     return category
+
+@router.put("/{category_id}", response_model=CategoryResponse)
+def update_category(category_id: int, category: CategoryCreate, db: Session = Depends(get_db)):
+    category_to_update = db.query(Category).filter(Category.id == category_id).first()
+
+    if not category_to_update:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="category not found")
+
+    existing_category = db.query(Category).filter(Category.name == category.name).first()
+
+    if existing_category and existing_category.id != category_id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Category already exists with this name")
+
+    category_to_update.name = category.name
+    db.commit()
+    db.refresh(category_to_update)
+    return category_to_update
+
+@router.delete("/{category_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_category(category_id: int, db: Session = Depends(get_db)):
+    category_to_delete = db.query(Category).filter(Category.id == category_id).first()
+
+    if not category_to_delete:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="category not found")
+
+    db.delete(category_to_delete)
+    db.commit()
+    return {"detail": "category deleted successfully"}

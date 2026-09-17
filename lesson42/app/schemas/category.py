@@ -2,7 +2,7 @@ from pydantic import BaseModel
 
 class ProductInCategory(BaseModel):
     id: int
-    naem: str
+    name: str
 
 class CategoryCreate(BaseModel):
     name: str

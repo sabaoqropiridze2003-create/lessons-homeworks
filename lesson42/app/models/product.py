@@ -8,7 +8,6 @@ class Product(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(100))
-    description: Mapped[str] = mapped_column(String(255))
     price: Mapped[float] = mapped_column(Integer)
     quantity: Mapped[int] = mapped_column(Integer)
     is_available: Mapped[bool] = mapped_column(Boolean, default=True)

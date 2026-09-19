@@ -11,3 +11,6 @@ class CategoryResponse(BaseModel):
     id: int
     name: str
     products: list[ProductInCategory]
+
+    class Config:
+        from_attributes = True

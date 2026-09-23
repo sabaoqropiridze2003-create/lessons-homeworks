@@ -12,13 +12,17 @@ def verify_password(password: str, hashed_password: str):
 
 SECRET_KEY = "SABA"
 ALGORITHM = "HS256"
-EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTE = 30
 
 def create_access_token(data: dict):
     to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(minutes=EXPIRE_MINUTES)
+
+    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTE)
+
     to_encode.update({"exp": expire})
+
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
     return encoded_jwt
 
-print(create_access_token({"sub": "testuser"}))
+# print(create_access_token({"user_id": 5}))

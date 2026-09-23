@@ -6,29 +6,20 @@ class UserCreate(BaseModel):
     username: str = Field(min_length=3, max_length=50,description="The username of the user")
     email: EmailStr
     password: str = Field(min_length=8, max_length=100, description="The pssword of the user")
-    confirm_password: str = Field(min_length=8, max_length=100, description="The confirmation pssword of the user")
 
-    @model_validator(mode="before")
-    def passwords_match(cls, value):
-        password = value.get("password")
-        confirm_password = value.get("confirm_password")
-        if password != confirm_password:
-            raise ValueError("Passwords do not match, please write correct password")
-        return value
 
     @field_validator("password")
-    def validate_password_strength(cls, password):
-        if len(password) < 8:
-            raise ValueError("Password must be at least 8 characters long") 
-        if not re.search(r"[A-Z]", password):
+    @classmethod
+    def validate_password(cls, value):
+        if not re.search(r"[A-Z]", value):
             raise ValueError("Password must contain at least one uppercase letter")
-        if not re.search(r"[a-z]", password):
+        if not re.search(r"[a-z]", value):
             raise ValueError("Password must contain at least one lowercase letter")
-        if not re.search(r"\d", password):
+        if not re.search(r"\d", value):
             raise ValueError("Password must contain at least one digit")
-        if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
+        if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", value):
             raise ValueError("Password must contain at least one special character")
-        return password
+        return value
 
 
 class UserResponse(BaseModel):

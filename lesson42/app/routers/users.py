@@ -2,15 +2,16 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from app.schemas.user import UserCreate, UserResponse, UserLogin
 from app.database import get_db
 from app.models.user import User
-from app.security import hash_password, verify_password
+from app.security import hash_password, verify_password, create_access_token
 from sqlalchemy.orm import Session
+
 
 router = APIRouter(prefix="/user", tags=["users"])
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
 
-    existing_user_name = db.query(User).filter(user.username == user.username).first()
+    existing_user_name = db.query(User).filter(User.username == user.username).first()
 
     if existing_user_name:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="There is existing account with this username")
@@ -39,4 +40,9 @@ def login_user(user: UserLogin, db: Session = Depends(get_db)):
     if not db_user or not verify_password(user.password, db_user.hashed_password):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
-    return {"message": "Login successful", "user": db_user}
+    access_token = create_access_token(data={"user_id": db_user.id})
+
+    return {
+        "token": access_token,
+        'user_id': db_user.id 
+    }

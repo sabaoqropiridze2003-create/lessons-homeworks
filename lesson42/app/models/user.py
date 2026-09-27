@@ -12,6 +12,7 @@ class User(Base):
     hashed_password: Mapped[str] = mapped_column(String(255))
     is_active: Mapped[bool] = mapped_column(default=True, nullable=True)
     registered_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    role: Mapped[str] = mapped_column(String(250), default="user", nullable=True)
 
     def __str__(self):
         return self.username

@@ -17,14 +17,32 @@ def verify_password(password: str, hashed_password: str):
 
 SECRET_KEY = "SABA"
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTE = 120
+ACCESS_TOKEN_EXPIRE_MINUTE = 30
+REFRSH_TOKEN_EXPIRE_DAYS = 7
 
 def create_access_token(data: dict):
     to_encode = data.copy()
 
     expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTE)
 
-    to_encode.update({"exp": expire})
+    to_encode.update({
+        "exp": expire,
+        "token_type": "access"
+    })
+
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+    return encoded_jwt
+
+def create_refresh_token(data: dict):
+    to_encode = data.copy()
+
+    expire = datetime.utcnow() + timedelta(days=REFRSH_TOKEN_EXPIRE_DAYS)
+
+    to_encode.update({
+        "exp": expire,
+        "token_type": "refresh"
+    })
 
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
@@ -42,15 +60,17 @@ def create_access_token(data: dict):
 
 # print(verify_token("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo1LCJleHAiOjE3OTAzODUzODV9.qZs6Xu86Ln5zULwuxXGsYXPs7E3xwdv47MMewr3k_uA"))
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/login")
 
 def get_curent_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
 
         user_id = payload.get("user_id")
+        token_type = payload.get("token_type")
 
-        if not user_id:
+        if not user_id or token_type != "access":
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token invalid or expired, Please log in again")
         
     except JWTError:

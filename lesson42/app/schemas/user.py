@@ -25,7 +25,11 @@ class UserResponse(BaseModel):
     username: str
     email: EmailStr
     registered_at: datetime
+    role: str
 
 class UserLogin(BaseModel):
-    username: str = Field(min_length=3, max_length=50,description="The username of the user")
-    password: str = Field(min_length=3, max_length=100, description="The pssword of the user")
+    username: str
+    password: str
+
+class RefreshTokenSchema(BaseModel):
+    refresh_token: str

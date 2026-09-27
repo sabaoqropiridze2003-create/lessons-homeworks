@@ -1,3 +1,5 @@
+import time
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from app.models.product import Product
 from app.models.category import Category
@@ -9,6 +11,8 @@ router = APIRouter(prefix="/products", tags=["products"])
 
 @router.get("/", response_model=list[ProductResponse])
 def get_products(page: int | None = 1, limit: int | None = 3,db: Session = Depends(get_db)):
+
+    time.sleep(3)  # Simulate a delay of    3 seconds
 
     total = db.query(Product).all()
 

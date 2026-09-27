@@ -1,9 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from app.schemas.user import UserCreate, UserResponse, UserLogin
+from app.schemas.user import UserCreate, UserResponse, UserLogin, RefreshTokenSchema
 from app.database import get_db
 from app.models.user import User
-from app.security import hash_password, verify_password, create_access_token, get_curent_user, require_admin
 from sqlalchemy.orm import Session
+from app.security import (
+    hash_password, verify_password,
+    create_access_token, get_curent_user,
+    require_admin, create_refresh_token,
+    SECRET_KEY, ALGORITHM)
+from jose import jwt, JWSError
+
 
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -41,11 +47,36 @@ def login_user(user: UserLogin, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
     access_token = create_access_token(data={"user_id": db_user.id})
+    refresh_token = create_refresh_token(data={"user_id": db_user.id})
 
     return {
-        "token": access_token,
-        "token_type": "bearer" 
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "token_type": "bearer"
     }
+
+
+@router.post("/token/refresh")
+def refresh_token(request: RefreshTokenSchema):
+    try:
+        payload = jwt.decode(request.refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
+
+        user_id = payload.get("user_id")
+        token_type = payload.get("token_type")
+
+        if not user_id or token_type != "refresh":
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token")
+    except JWSError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token")
+
+    access_token = create_access_token(data={"user_id": user_id})
+
+    return {
+        "access_token": access_token,
+        "token_type": "bearer"
+    }
+
+
 
 # @router.get("/me")
 # def get_me(token: str = Depends(oauth2_scheme)):
@@ -67,4 +98,59 @@ def get_users(current_user: User = Depends(require_admin),db: Session = Depends(
 def get_user(user_id: int, curent_user: User = Depends(require_admin), db: Session = Depends(get_db)):
     user = db.query(User).filter(User.id == user_id).first()
 
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
     return user
+
+@router.patch("/{user_id}/make_admin")
+def make_admin(user_id: int, current_user: User = Depends(require_admin), db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    if user.role == "admin":
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User is already an admin")
+    user.role = "admin"
+    db.commit()
+    db.refresh(user)
+
+    return {
+        "message": f"User {user.username} has been promoted to admin"
+    }
+
+@router.patch("/{user_id}/remove_admin")
+def remove_admin(user_id: int, current_user: User = Depends(require_admin), db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+
+    if user.id == current_user.id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="You cannot remove yourself from admin role")
+
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    if user.role == "user":
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User is not an admin")
+
+    user.role = "user"
+    db.commit()
+    db.refresh(user)
+
+    return {
+        "message": f"User {user.username} has been demoted to user"
+    }
+
+@router.delete("/{user_id}")
+def delete_user(user_id: int, current_user: User = Depends(require_admin), db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    db.delete(user)
+    db.commit()
+
+    return {
+        "message": f"User {user.username} has been deleted"
+    }

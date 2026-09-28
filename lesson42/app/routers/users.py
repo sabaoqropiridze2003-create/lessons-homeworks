@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from app.schemas.user import UserCreate, UserResponse, UserLogin, RefreshTokenSchema
 from app.database import get_db
 from app.models.user import User
@@ -84,9 +84,26 @@ def refresh_token(request: RefreshTokenSchema):
 
 #     return token
 
-@router.get("/me", response_model=UserResponse)
-def get_me(current_user: User = Depends(get_curent_user)):
-    return current_user
+# @router.get("/me", response_model=UserResponse)
+# def get_me(current_user: User = Depends(get_curent_user)):
+#     return current_user
+
+
+def back_task_test_number():
+    for i in range(10000):
+        print(i)
+
+def back_task_test_text():
+    for i in range(100000):
+        print("Helo background Task!")
+
+@router.get("/me")
+async def get_me(background_task: BackgroundTasks):
+    background_task.add_task(back_task_test_number)
+    background_task.add_task(back_task_test_text)
+    
+    return{"message": "Background task started"}
+
 
 @router.get("/", response_model=list[UserResponse])
 def get_users(current_user: User = Depends(require_admin),db: Session = Depends(get_db)):

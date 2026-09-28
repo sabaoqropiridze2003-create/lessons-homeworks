@@ -1,30 +1,61 @@
-import time
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from app.models.product import Product
 from app.models.category import Category
-from app.database import get_db
+from app.database import get_db, get_async_db
 from sqlalchemy.orm import Session
 from app.schemas.product import ProductCreate, ProductResponse, ProductUpdate
+from sqlalchemy import select, func
+from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(prefix="/products", tags=["products"])
 
-@router.get("/", response_model=list[ProductResponse])
-def get_products(page: int | None = 1, limit: int | None = 3,db: Session = Depends(get_db)):
+# @router.get("/", response_model=list[ProductResponse])
+# def get_products(page: int | None = 1, limit: int | None = 3,db: Session = Depends(get_db)):
 
-    time.sleep(3)  # Simulate a delay of    3 seconds
 
-    total = db.query(Product).all()
+#     total = db.query(Product).all()
+
+#     offset = (page - 1) * limit
+
+#     products = db.query(Product).offset(offset).limit(limit).all()
+
+#     return products
+
+@router.get("/")
+async def get_products(page: int | None = 1, limit: int | None = 3, db: AsyncSession = Depends(get_async_db)):
+    total_procts_query = await db.execute(select(func.count(Product.id)))
+
+    total = total_procts_query.scalar()
 
     offset = (page - 1) * limit
 
-    products = db.query(Product).offset(offset).limit(limit).all()
+    products = await db.execute(select(Product).offset(offset).limit(limit))
 
-    return products
+    product_list = products.scalars().all()
+
+    return {
+        "total": total,
+        "products": product_list
+    }
+
+# @router.post("/create", response_model=ProductResponse, status_code=status.HTTP_201_CREATED)
+# def create_product(product: ProductCreate, db: Session = Depends(get_db)):
+#     category = db.get(Category, product.category_id)
+
+#     if not category:
+#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Category not found")
+
+#     new_product = Product(**product.model_dump())
+
+#     db.add(new_product)
+#     db.commit()
+#     db.refresh(new_product)
+
+#     return new_product
 
 @router.post("/create", response_model=ProductResponse, status_code=status.HTTP_201_CREATED)
-def create_product(product: ProductCreate, db: Session = Depends(get_db)):
-    category = db.get(Category, product.category_id)
+async def create_product(product: ProductCreate, db: AsyncSession = Depends(get_async_db)):
+    category = await db.get(Category, product.category_id)
 
     if not category:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Category not found")
@@ -32,10 +63,11 @@ def create_product(product: ProductCreate, db: Session = Depends(get_db)):
     new_product = Product(**product.model_dump())
 
     db.add(new_product)
-    db.commit()
-    db.refresh(new_product)
+    await db.commit()
+    await db.refresh(new_product)
 
     return new_product
+
 
 @router.get("/{product_id}", response_model=ProductResponse)
 def get_product(product_id: int, db: Session = Depends(get_db)):

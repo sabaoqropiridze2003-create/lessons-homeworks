@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, async_session
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+
 
 DATABASE_URL = "postgresql+psycopg2://postgres:paroli@localhost:5432/PP-39"
 

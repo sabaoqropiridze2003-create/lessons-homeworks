@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from app.routers import categories, products, users
 from app.middlewares.logging import log_request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 
 app = FastAPI(
@@ -23,3 +24,5 @@ app.middleware("http")(log_request)
 app.include_router(categories.router)
 app.include_router(products.router)
 app.include_router(users.router)
+
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")

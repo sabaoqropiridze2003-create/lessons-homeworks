@@ -11,6 +11,7 @@ class Product(Base):
     price: Mapped[float] = mapped_column(Integer)
     quantity: Mapped[int] = mapped_column(Integer)
     is_available: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    image: Mapped[str| None] = mapped_column(String(255), default=None, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 

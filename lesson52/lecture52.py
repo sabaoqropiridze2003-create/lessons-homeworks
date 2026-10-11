@@ -31,59 +31,214 @@ MODEL = "gemini-3.5-flash-lite"
 # History
 #####################################################################################################
 
-system_prompt = """
-You are a Python teacher, use simple examples to explain concepts, use short sentences!
+# system_prompt = """
+# You are a Python teacher, use simple examples to explain concepts, use short sentences!
+# """
+
+# messages = []
+
+# total_input_tokens = 0
+# total_output_tokens = 0
+
+# while True:
+#     user_input = input("User: ")
+
+#     if user_input.lower() in ["exit", "quit"]:
+#         print("exitting the chat.")
+#         break
+
+#     messages.append({
+#         "role": "user",
+#         "parts": [{"text": user_input}]
+#     })
+
+#     messages_to_send = messages[-6:]
+
+#     response = client.models.generate_content(
+#         model=MODEL,
+#         contents=messages_to_send,
+#         config=types.GenerateContentConfig(
+#             temperature=0.0,
+#             max_output_tokens=1000,
+#             system_instruction=system_prompt
+#         )
+#     )
+#     assistant_message = response.text
+
+#     print("=" * 50)
+#     print(f"Current input tokens: {response.usage_metadata.prompt_token_count}")
+#     print(f"Current output tokens: {response.usage_metadata.candidates_token_count}")
+#     print(f"Total tokens for this interaction: {response.usage_metadata.total_token_count}")
+#     print("=" * 50)
+
+#     total_input_tokens += response.usage_metadata.prompt_token_count
+#     total_output_tokens += response.usage_metadata.candidates_token_count
+
+#     print("=" * 50)
+#     print(f"Total input tokens: {total_input_tokens}")
+#     print(f"Total output tokens: {total_output_tokens}")
+#     print("=" * 50)
+
+#     print(f"Messages Length: {len(messages_to_send)}")
+
+#     print(f"Assistant: {assistant_message}")
+
+#     messages.append({
+#         "role": "model",
+#         "parts": [{"text": assistant_message}]
+#     })
+
+##################################################################################################
+# Summarize
+##################################################################################################
+
+SYSTEM_PROMPT = """
+You are a helpful Python instructor.
+
+Explain Python concepts clearly.
+Use simple language.
 """
 
+SUMMARY_SYSTEM_PROMPT = """
+You summarize conversations.
+
+Keep only information required
+to continue the conversation later.
+
+Include:
+
+- user's goals
+- important facts
+- technical decisions
+- unresolved questions
+
+Ignore greetings and small talk.
+"""
+
+conversation_summary = ""
 messages = []
 
-total_input_tokens = 0
-total_output_tokens = 0
+MAX_HISTORY = 6
+KEEP_LAST_MESSAGES = 4
 
-while True:
-    user_input = input("User: ")
+def summarize_conversation(summary: str, old_messages: list) -> str:
 
-    if user_input.lower() in ["exit", "quit"]:
-        print("exitting the chat.")
-        break
-
-    messages.append({
-        "role": "user",
-        "parts": [{"text": user_input}]
-    })
-
-    messages_to_send = messages[-4:]
+    conversation = "\n".join(
+        f"{m['role']}: {m['parts'][0]['text']}"
+        for m in old_messages
+    )
 
     response = client.models.generate_content(
         model=MODEL,
-        contents=messages_to_send,
+        contents=f"""
+Previous summary:
+
+{summary or "No previous summary."}
+
+New conversation:
+
+{conversation}
+
+Update the summary.
+""",
         config=types.GenerateContentConfig(
-            temperature=0.0,
-            max_output_tokens=1000,
-            system_instruction=system_prompt
+            system_instruction=SUMMARY_SYSTEM_PROMPT,
+            max_output_tokens=400
         )
     )
-    assistant_message = response.text
 
-    print("=" * 50)
-    print(f"Current input tokens: {response.usage_metadata.prompt_token_count}")
-    print(f"Current output tokens: {response.usage_metadata.candidates_token_count}")
-    print(f"Total tokens for this interaction: {response.usage_metadata.total_token_count}")
-    print("=" * 50)
+    return response.text
 
-    total_input_tokens += response.usage_metadata.prompt_token_count
-    total_output_tokens += response.usage_metadata.candidates_token_count
 
-    print("=" * 50)
-    print(f"Total input tokens: {total_input_tokens}")
-    print(f"Total output tokens: {total_output_tokens}")
-    print("=" * 50)
+while True:
 
-    print(f"Messages Length: {len(messages_to_send)}")
+    user_input = input("\nYou: ")
 
-    print(f"Assistant: {assistant_message}")
+    if user_input.lower() == "exit":
+        break
+
+    if len(messages) >= MAX_HISTORY:
+
+        old_messages = messages[:-KEEP_LAST_MESSAGES]
+
+        conversation_summary = summarize_conversation(
+            conversation_summary,
+            old_messages
+        )
+
+        messages = messages[-KEEP_LAST_MESSAGES:]
+
+    api_messages = []
+
+    if conversation_summary:
+
+        api_messages.append({
+            "role": "user",
+            "parts": [
+                {
+                    "text": f"""
+Previous conversation summary:
+
+{conversation_summary}
+"""
+                }
+            ]
+        })
+
+        api_messages.append({
+            "role": "model",
+            "parts": [
+                {
+                    "text": "Summary received. I'll use it as context."
+                }
+            ]
+        })
+
+    api_messages.extend(messages)
+
+    api_messages.append({
+        "role": "user",
+        "parts": [
+            {
+                "text": user_input
+            }
+        ]
+    })
+
+    response = client.models.generate_content(
+        model=MODEL,
+        contents=api_messages,
+        config=types.GenerateContentConfig(
+            system_instruction=SYSTEM_PROMPT,
+            max_output_tokens=500
+        )
+    )
+
+    answer = response.text
+
+    print("\nGemini:", answer)
+
+    print("\nUsage")
+    print("----------------------------")
+    print("Input :", response.usage_metadata.prompt_token_count)
+    print("Output:", response.usage_metadata.candidates_token_count)
+    print("Summary:", bool(conversation_summary))
+    print("----------------------------")
+
+    messages.append({
+        "role": "user",
+        "parts": [
+            {
+                "text": user_input
+            }
+        ]
+    })
 
     messages.append({
         "role": "model",
-        "parts": [{"text": assistant_message}]
+        "parts": [
+            {
+                "text": answer
+            }
+        ]
     })

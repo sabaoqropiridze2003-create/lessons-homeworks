@@ -9,8 +9,8 @@ MODEL_NAME = "gemini-3.5-flash-lite"
 #     model=MODEL_NAME
 # )
 
-# response = model.invoke("What is the capital of France?")
-#
+# response = model.invoke("what is the capirtal of country georgia?")
+
 # print(response.text)
 # print(response.usage_metadata)
 
@@ -20,37 +20,37 @@ MODEL_NAME = "gemini-3.5-flash-lite"
 
 # from langchain_core.prompts import ChatPromptTemplate
 # from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
-#
+
 
 # model = ChatGoogleGenerativeAI(
 #     model=MODEL_NAME
 # )
 
-# # prompt = ChatPromptTemplate.from_messages(
-# #     [
-# #         SystemMessage(content="You are a helpful Python assistant."),
-# #         HumanMessage(content="When was the Python 3.0 released?"),
-# #     ]
-# # )
-#
 # prompt = ChatPromptTemplate.from_messages(
 #     [
-#         ("system", "You are a helpful {subject} assistant."),
-#         ("human", "{question}"),
+#         SystemMessage(content="You are a helpfull Python assistant"),
+#         HumanMessage(content="When was Python 3.0 released?"),
 #     ]
 # )
-#
+
+# prompt = ChatPromptTemplate.from_messages(
+#     [
+#     ("system", "You are a helpfull {subject} assistant"),
+#     ("human", "{question}"),
+#     ]
+# )
+
 # prompt_input = prompt.invoke(
 #     {
 #         "subject": "Python",
-#         "question": "When was the Python 3.0 released?"
+#         "question": "who created python" 
 #     }
 # )
-#
-# # print(prompt_input)
-#
+
+# print(prompt_input)
+
 # response = model.invoke(prompt_input)
-#
+
 # print(response.text)
 
 #################################################################
@@ -58,96 +58,96 @@ MODEL_NAME = "gemini-3.5-flash-lite"
 #################################################################
 
 # from langchain_core.prompts import ChatPromptTemplate
-#
+
 # model = ChatGoogleGenerativeAI(
 #     model=MODEL_NAME
 # )
-#
+
 # prompt = ChatPromptTemplate.from_messages(
 #     [
-#         ("system", "You are a helpful {subject} assistant."),
+#         ("system", "You are a helpfull {subject} assistant"),
 #         ("human", "{question}"),
 #     ]
 # )
-#
+
 # chain = prompt | model
-#
+
 # response = chain.invoke(
 #     {
 #         "subject": "Python",
-#         "question": "When was the Python 3.0 released?"
+#         "question": "who created python"
 #     }
 # )
-#
-# # print(type(response))
-#
+
+
+# print(type(response))
+
 # print(response.text)
+
 
 
 #################################################################
 # Output Parsers
 #################################################################
 
+
 ## StrOutputParser ##
 
 # from langchain_core.prompts import ChatPromptTemplate
 # from langchain_core.output_parsers import StrOutputParser
-#
+
 # model = ChatGoogleGenerativeAI(
 #     model=MODEL_NAME
 # )
-#
-#
+
 # prompt = ChatPromptTemplate.from_messages(
 #     [
-#         ("system", "You are a helpful {subject} assistant."),
+#         ("system", "You are a helpfull {subject} assistant"),
 #         ("human", "{question}"),
 #     ]
 # )
-#
+
 # parser = StrOutputParser()
-#
+
 # chain = prompt | model | parser
-#
-#
+
 # response = chain.invoke(
 #     {
 #         "subject": "Python",
-#         "question": "When was the Python 3.0 released?"
+#         "question": "When was python invented"
 #     }
 # )
-#
+
 # print(response)
 
 ## JsonOutputParser ##
 
 # from langchain_core.prompts import ChatPromptTemplate
 # from langchain_core.output_parsers import JsonOutputParser
-#
+
 # model = ChatGoogleGenerativeAI(
 #     model=MODEL_NAME
 # )
-#
-#
+
 # prompt = ChatPromptTemplate.from_messages(
 #     [
-#         ("system", "Tell me about programming languages in JSON format. "),
+#         ("system", "Tell me about programming languages in JSON format"),
 #         ("human", "{question}"),
 #     ]
 # )
-#
+
 # parser = JsonOutputParser()
-#
+
 # chain = prompt | model | parser
-#
+
 # response = chain.invoke(
 #     {
 #         "question": "Tell me about Python"
 #     }
 # )
-#
-# print(type(response))
 
+# print(type(response))
+# print(response)
 
 ## PydanticOutputParser ##
 
@@ -159,38 +159,35 @@ model = ChatGoogleGenerativeAI(
     model=MODEL_NAME
 )
 
-class ProductReview(BaseModel):
+class ProducReview(BaseModel):
     score: int = Field(ge=1, le=10)
     comment: str = Field(min_length=10)
     recommend: bool
 
-parser = PydanticOutputParser(pydantic_object=ProductReview)
 
+parser = PydanticOutputParser(pydantic_object=ProducReview)
 
 prompt = ChatPromptTemplate.from_messages(
     [
         ("system", """
-        You are a helpful assistant.
-        Analyze the following product review and provide:
+        You are a helpfull assistant.
+        analize the following product review an provide:
         - a rating from 1 to 10
         - a short summary
-        - whether you recommend the product
+        - wheter you recomend the product
 
-        {format_instructions}
+        {format_instruction}
         """),
-
-
         ("human", "{review}")
     ]
 )
 
 chain = prompt | model | parser
 
-
 response = chain.invoke(
     {
-        "review": "The Laptop is very good, but battery life is disappointing.",
-        "format_instructions": parser.get_format_instructions()
+        "review": "the laptop is very good, but battery life is disappointing",
+        "format_instruction": parser.get_format_instructions()
     }
 )
 

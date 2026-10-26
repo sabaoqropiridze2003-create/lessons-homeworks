@@ -191,5 +191,6 @@ response = chain.invoke(
     }
 )
 
-print(response)
-print(type(response))
+print(response.score)
+print(response.comment)
+print(response.recommend)

@@ -22,7 +22,7 @@ def make_config(thread_id: str):
 def build_response(thread_id: str, snapshot):
     values = snapshot.values
 
-    if snapshot.next == "human_approval":
+    if snapshot.next == ("human_approval", ):
         status = "waiting_human_approval"
     elif not snapshot.next:
         status = values.get("status", "completed")

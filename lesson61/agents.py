@@ -9,6 +9,8 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from langgraph.graph import StateGraph, START, END
 from langgraph.types import interrupt
 from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.checkpoint.postgres import PostgresSaver
+
 
 MAX_ATTEMPTS = 3
 
@@ -175,7 +177,7 @@ def human_approval(state: CodeReviewState):
 # Graph
 #---------------------------------------------
 
-def build_graph():
+def build_graph(checkpointer):
     builder = StateGraph(CodeReviewState)
 
     builder.add_node("code_writer", code_writer)
@@ -187,8 +189,6 @@ def build_graph():
     builder.add_conditional_edges("reviewer", review_router)
     builder.add_edge("human_approval", END)
 
-    checkpointer = InMemorySaver()
+    # checkpointer = InMemorySaver()
 
     return builder.compile(checkpointer=checkpointer)
-
-graph = build_graph()

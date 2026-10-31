@@ -4,13 +4,13 @@ from schemas import CodeReviewResponse, CodeReviewRequest, ResumeRequest
 
 from fastapi import FastAPI, HTTPException, Request
 from langgraph.types import Command
-
-
+from database import lifespan
 
 app = FastAPI(
     title="AI Code Review Service",
     description="A service that reviews code using AI",
-    version="0.1.0"
+    version="0.1.0",
+    lifespan=lifespan
 )
 
 def make_config(thread_id: str):
@@ -45,11 +45,11 @@ def read_root():
     return {
         "service": "AI Code Review Service",
         "version": "0.1.0",
-        "status": "running"
+        "status": "running"        
     }
 
 @app.post("/api/code-review", response_model=CodeReviewResponse)
-def create_code_review(request: CodeReviewRequest, http_request: Request):
+def create_code_reviwe(request: CodeReviewRequest, http_request: Request):
 
     graph = http_request.app.state.graph
 
@@ -75,7 +75,6 @@ def create_code_review(request: CodeReviewRequest, http_request: Request):
     snapshot = graph.get_state(config)
 
     return build_response(thread_id, snapshot)
-
 
 @app.get("/api/code-review/{thread_id}", response_model=CodeReviewResponse)
 def get_code_review(thread_id: str, http_request: Request):
